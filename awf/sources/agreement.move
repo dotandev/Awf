@@ -1,12 +1,11 @@
 module awf::agreement;
-    use sui::object::{Self, UID};
-    use sui::tx_context::{Self, TxContext};
-    use sui::transfer;
     use sui::vec_map::{Self, VecMap};
 
     // Agreement object
     public struct Agreement has key, store {
         id: UID,
+        is_signed_by_second_party: bool,
+        is_signed_by_creator: bool,
         parties: VecMap<address, bool>, // Parties to the agreement
         terms_hash: vector<u8>, // Hash of agreement terms (e.g., text or audio)
         playback_data: vector<u8>, // Encrypted playback data (e.g., audio hash)
@@ -30,6 +29,8 @@ module awf::agreement;
         let agreement = Agreement {
             id: object::new(ctx),
             parties,
+            is_signed_by_creator: false,
+            is_signed_by_second_party: false,
             terms_hash,
             playback_data,
             zka_verified: false, // Pending ZKA
@@ -39,7 +40,7 @@ module awf::agreement;
     }
 
     // Verify party using ZKA (placeholder)
-    public entry fun verify_party(agreement: &mut Agreement, proof: vector<u8>, ctx: &TxContext) {
+    public entry fun verify_party(agreement: &mut Agreement, _proof: vector<u8>, ctx: &TxContext) {
         // In practice, validate ZKP proof (e.g., party matches biometric/attestation)
         let sender = tx_context::sender(ctx);
         assert!(vec_map::contains(&agreement.parties, &sender), 100); // Simplified check
