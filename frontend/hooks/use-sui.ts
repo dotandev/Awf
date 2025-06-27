@@ -1,0 +1,3 @@
+const PACKAGE_ID = '0xccb6a503ffa30115171d778a435c08bf6af7b6420663d4cc1c19fdaa3a749d4b'
+
+export { PACKAGE_ID }
