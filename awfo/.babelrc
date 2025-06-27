@@ -1,0 +1,12 @@
+{
+  "presets": [
+    "@babel/preset-env",
+    // allExtensions: 是否允许 TypeScript 文件中导入没有文件扩展名的模块
+    // isTSX: 强制启用 jsx 解析, 否则尖括号将被视为 TypeScript 的旧类型断言
+    ["@babel/preset-typescript", { "allExtensions": true, "isTSX": true }]
+  ],
+  "plugins": [
+    "@vue/babel-plugin-jsx",
+    ["@babel/plugin-proposal-decorators", { "version": "2023-11" }]
+  ]
+}

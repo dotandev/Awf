@@ -1,0 +1,57 @@
+{
+  "compilerOptions": {
+    // 指定 ECMAScript 目标版本，"ES5" 表示编译后的代码将符合 ES5 标准
+    "target": "ES5",
+    // 指示 TypeScript 编译器使用最新的 ECMAScript 模块标准进行模块化代码的编译
+    "module": "esnext",
+    // 指示 TypeScript 使用 Node.js 风格的模块解析策略
+    "moduleResolution": "node",
+    // 指定编译过程中包含的库文件，这些库文件提供了全局变量的类型定义
+    "lib": ["dom", "esnext", "dom.iterable"],
+    // 允许默认导入不是使用 ES6 模块语法编写的模块
+    "esModuleInterop": true,
+    // 允许使用 ES6 默认导入语法导入 CommonJS 模块（类型检查，实际功能由 webpack 完成）
+    "allowSyntheticDefaultImports": true,
+    // 启用所有严格的类型检查选项
+    "strict": true,
+    // 跳过对所有声明文件 (*.d.ts) 的类型检查
+    "skipLibCheck": true,
+    // 强制文件名大小写一致性，避免在大小写敏感的操作系统上出现问题
+    "forceConsistentCasingInFileNames": true,
+    // 设置基础目录，用于解析非相对模块名
+    "baseUrl": ".",
+    // 保留 JSX 语法不做转换
+    "jsx": "preserve",
+    // 指定从 Vue 模块导入 JSX 创建函数
+    "jsxImportSource": "vue",
+    // 启用实验性装饰器
+    "experimentalDecorators": true,
+    // 设置路径映射, 允许使用别名导入模块
+    "paths": {
+      // 确保类型检查时路径能够正确解析
+      "@/*": ["src/*"],
+      "@styles/*": ["src/assets/styles/*"],
+      "@images/*": ["src/assets/images/*"],
+      "@router/*": ["src/router/*"],
+      "@views/*": ["src/views/*"],
+      "@stores/*": ["src/stores/*"],
+      "@layouts/*": ["src/layouts/*"],
+      "@apis/*": ["src/apis/*"],
+      "@shared/*": ["src/shared/*"],
+      "@utils/*": ["src/utils/*"],
+      "@plugins/*": ["src/plugins/*"],
+      "@directives/*": ["src/directives/*"]
+    }
+  },
+  // 指定编译器应包含哪些文件
+  "include": [
+    "src/*",
+    "src/**/*.vue",
+    "src/**/*.tsx",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.js"
+  ],
+  // 指定编译器应排除哪些文件
+  "exclude": ["node_modules"]
+}

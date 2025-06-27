@@ -1,0 +1,23 @@
+# EditorConfig 是帮助开发者在不同的编辑器和 IDE 中保持一致编码风格的文件
+# 表示是最顶层的 EditorConfig 配置文件，编辑器会从这里开始查找和应用配置
+root = true
+
+# 匹配所有文件
+[*]
+# 设置文件字符集为 utf-8
+charset = utf-8
+# 缩进风格 (tab 或 space)
+indent_style = space
+# 缩进大小, 使用 2 个空格
+indent_size = 2
+# 换行风格, lf 表示只使用换行符 (Linux 和 macOS 风格)
+end_of_line = lf
+# 保存时去除行尾空格
+trim_trailing_whitespace = true
+# 文件末尾自动保留一个空行
+insert_final_newline = true
+
+# 匹配 Markdown 文件
+[*.md]
+# Markdown 文件中, 行尾空格可能用于换行, 因此不去除行尾空格
+trim_trailing_whitespace = false
