@@ -4,40 +4,42 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Mic, Shield, Users, Plus, Search } from "lucide-react"
+import { FileText, Mic, Shield, Users, Plus, Search, Home } from "lucide-react"
 import { CreateAgreement } from "@/components/create-agreement"
 import { VerifyAgreement } from "@/components/verify-agreement"
 import { AgreementList } from "@/components/agreement-list"
+import Link from "next/link"
 
 export default function Dashboard() {
   const [activeView, setActiveView] = useState<"dashboard" | "create" | "verify">("dashboard")
   const [agreements] = useState([
     {
-      id: "1",
+      id: "0x1a2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890",
       title: "Small Business Loan Agreement",
       parties: ["0x123...abc", "0x456...def"],
       status: "verified",
       type: "audio",
       createdAt: "2024-01-15",
       amount: "₦50,000",
+      isSignedByCreator: true,
+      isSignedBySecondParty: true,
+      zkaVerified: true,
+      termsHash: "0xa1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
+      playbackData: "QmX1Y2Z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S2T3U4V5W6X7Y8Z9",
     },
     {
-      id: "2",
+      id: "0x2b3c4d5e6f7890abcdef1234567890abcdef1234567890abcdef1234567890ab",
       title: "Land Lease Contract",
       parties: ["0x789...ghi", "0x012...jkl"],
       status: "pending",
       type: "text",
       createdAt: "2024-01-14",
       amount: "₦200,000",
-    },
-    {
-      id: "3",
-      title: "Supply Agreement",
-      parties: ["0x345...mno", "0x678...pqr"],
-      status: "verified",
-      type: "audio",
-      createdAt: "2024-01-13",
-      amount: "₦75,000",
+      isSignedByCreator: true,
+      isSignedBySecondParty: false,
+      zkaVerified: false,
+      termsHash: "0xb2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567",
+      playbackData: "QmY2Z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S2T3U4V5W6X7Y8Z9A0",
     },
   ])
 
@@ -53,13 +55,22 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">Agreement Ledger</h1>
-          <p className="text-gray-600">Secure, verifiable agreements on Sui blockchain</p>
-          <Badge variant="outline" className="bg-green-100 text-green-800">
-            <Shield className="w-3 h-3 mr-1" />
-            Zero-Knowledge Verified
-          </Badge>
+        <div className="flex items-center justify-between">
+          <div className="text-center space-y-2">
+            <h1 className="text-3xl font-bold text-gray-900">Agreement Ledger</h1>
+            <p className="text-gray-600">Secure, verifiable agreements on Sui blockchain</p>
+            <Badge variant="outline" className="bg-green-100 text-green-800">
+              <Shield className="w-3 h-3 mr-1" />
+              Zero-Knowledge Verified
+            </Badge>
+          </div>
+
+          <Link href="/home">
+            <Button variant="outline" className="flex items-center space-x-2 bg-transparent">
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Cards */}

@@ -8,21 +8,28 @@ import { Upload, Hash, CheckCircle, AlertCircle } from "lucide-react"
 
 interface IPFSUploadProps {
   content: string | Blob | null
+  documents?: Array<{
+    name: string
+    type: string
+    size: number
+    content: string | ArrayBuffer
+  }> | null
   onUploadComplete: (hash: string) => void
 }
 
-export function IPFSUpload({ content, onUploadComplete }: IPFSUploadProps) {
+export function IPFSUpload({ content, documents, onUploadComplete }: IPFSUploadProps) {
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle")
   const [ipfsHash, setIpfsHash] = useState<string>("")
   const [contentHash, setContentHash] = useState<string>("")
 
   const simulateUpload = async () => {
-    if (!content) return
+    if (!content && (!documents || documents.length === 0)) return
 
     setUploadStatus("uploading")
 
-    // Simulate IPFS upload delay
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    // Simulate IPFS upload delay - longer if documents are included
+    const uploadTime = documents && documents.length > 0 ? 4000 : 3000
+    await new Promise((resolve) => setTimeout(resolve, uploadTime))
 
     // Generate mock hashes
     const mockIpfsHash = "QmX1Y2Z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S2T3U4V5W6X7Y8Z9"
@@ -35,10 +42,10 @@ export function IPFSUpload({ content, onUploadComplete }: IPFSUploadProps) {
   }
 
   useEffect(() => {
-    if (content && uploadStatus === "idle") {
+    if (content || (documents && documents.length > 0 && uploadStatus === "idle")) {
       simulateUpload()
     }
-  }, [content])
+  }, [content, documents, uploadStatus])
 
   const getStatusIcon = () => {
     switch (uploadStatus) {
@@ -115,6 +122,23 @@ export function IPFSUpload({ content, onUploadComplete }: IPFSUploadProps) {
                     <label className="text-sm font-medium text-gray-600">Content Hash (SHA-256)</label>
                     <p className="font-mono text-sm bg-white p-2 rounded border break-all">{contentHash}</p>
                   </div>
+
+                  {documents && documents.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">Documents Uploaded</label>
+                      <div className="bg-white p-2 rounded border">
+                        <p className="text-sm text-gray-700">
+                          {documents.length} supporting documents encrypted and stored
+                        </p>
+                        <ul className="text-xs text-gray-500 mt-1">
+                          {documents.slice(0, 3).map((doc, index) => (
+                            <li key={index}>• {doc.name}</li>
+                          ))}
+                          {documents.length > 3 && <li>• ... and {documents.length - 3} more</li>}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -164,7 +188,7 @@ export function IPFSUpload({ content, onUploadComplete }: IPFSUploadProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mt-2 border-red-300 text-red-700 hover:bg-red-50"
+                    className="mt-2 border-red-300 text-red-700 hover:bg-red-50 bg-transparent"
                     onClick={simulateUpload}
                   >
                     Retry Upload

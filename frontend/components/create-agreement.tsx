@@ -11,6 +11,11 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Mic, FileText, Users, Shield } from "lucide-react"
 import { AudioRecorder } from "@/components/audio-recorder"
 import { IPFSUpload } from "@/components/ipfs-upload"
+import { DocumentUpload } from "@/components/document-upload"
+
+// Add blockchain integration imports at the top
+import { AgreementContract } from "@/lib/sui-client"
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519"
 
 interface CreateAgreementProps {
   onBack: () => void
@@ -29,6 +34,16 @@ export function CreateAgreement({ onBack }: CreateAgreementProps) {
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
   const [ipfsHash, setIpfsHash] = useState<string>("")
   const [isCreating, setIsCreating] = useState(false)
+  const [attachedDocuments, setAttachedDocuments] = useState<
+    Array<{
+      id: string
+      name: string
+      type: string
+      size: number
+      content: string | ArrayBuffer
+      preview?: string
+    }>
+  >([])
 
   const addParty = () => {
     setFormData((prev) => ({
@@ -44,14 +59,71 @@ export function CreateAgreement({ onBack }: CreateAgreementProps) {
     }))
   }
 
+  // Update the handleCreateAgreement function
   const handleCreateAgreement = async () => {
     setIsCreating(true)
 
-    // Simulate blockchain transaction
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    try {
+      // Generate terms hash
+      const content = agreementType === "text" ? formData.terms : audioBlob
+      const termsHash = await generateContentHash(content)
 
-    setIsCreating(false)
-    setStep(4) // Success step
+      const documentsData =
+        attachedDocuments.length > 0
+          ? {
+              documents: attachedDocuments.map((doc) => ({
+                name: doc.name,
+                type: doc.type,
+                size: doc.size,
+                content: doc.content,
+              })),
+            }
+          : null
+
+      // Upload to IPFS (simulated)
+      const ipfsHash = await uploadToIPFS(content, documentsData)
+
+      // Create keypair (in production, use wallet integration)
+      const keypair = Ed25519Keypair.generate()
+
+      // Create agreement on blockchain
+      const result = await AgreementContract.createAgreement(
+        termsHash,
+        ipfsHash,
+        formData.parties.filter((p) => p.trim() !== ""),
+        keypair,
+      )
+
+      if (result.success) {
+        console.log("Agreement created:", result.transactionDigest)
+        setStep(4) // Success step
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      console.error("Error creating agreement:", error)
+      // Handle error state
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
+  // Add helper functions
+  const generateContentHash = async (content: string | Blob | null): Promise<string> => {
+    if (!content) return ""
+
+    const text = typeof content === "string" ? content : await content.text()
+    const encoder = new TextEncoder()
+    const data = encoder.encode(text)
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    return "0x" + hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+  }
+
+  const uploadToIPFS = async (content: string | Blob | null, documents?: any): Promise<string> => {
+    // Simulate IPFS upload
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    return "QmX1Y2Z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S2T3U4V5W6X7Y8Z9"
   }
 
   const renderStepContent = () => {
@@ -149,11 +221,15 @@ export function CreateAgreement({ onBack }: CreateAgreementProps) {
                       onChange={(e) => updateParty(index, e.target.value)}
                     />
                   ))}
-                  <Button variant="outline" onClick={addParty} className="w-full">
+                  <Button variant="outline" onClick={addParty} className="w-full bg-transparent">
                     <Users className="w-4 h-4 mr-2" />
                     Add Another Party
                   </Button>
                 </div>
+              </div>
+              <div>
+                <Label>Supporting Documents</Label>
+                <DocumentUpload onDocumentsChange={setAttachedDocuments} documents={attachedDocuments} />
               </div>
             </div>
           </div>
@@ -186,6 +262,7 @@ export function CreateAgreement({ onBack }: CreateAgreementProps) {
 
             <IPFSUpload
               content={agreementType === "text" ? formData.terms : audioBlob}
+              documents={attachedDocuments.length > 0 ? attachedDocuments : null}
               onUploadComplete={setIpfsHash}
             />
           </div>

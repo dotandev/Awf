@@ -63,12 +63,12 @@ module awf::agreement {
     }
 
     // Verify party using ZKA (simplified Schnorr-based)
-    public entry fun verify_party(agreement: &mut Agreement, proof: vector<u8>, ctx: &TxContext) {
+    public entry fun verify_party(agreement: &mut Agreement, _proof: vector<u8>, ctx: &TxContext) {
         let sender = tx_context::sender(ctx);
         assert!(vec_map::contains(&agreement.parties, &sender), 100);
         // Placeholder: Verify Schnorr ZKP proof (off-chain generated)
         // Example: proof validates sender matches biometric/attestation
-        agreement.parties.entry(sender).or_insert(true);
+        // agreement.parties.entry(sender).or_insert(true);
         if (agreement.is_signed_by_creator && agreement.is_signed_by_second_party) {
             agreement.zka_verified = true;
         };

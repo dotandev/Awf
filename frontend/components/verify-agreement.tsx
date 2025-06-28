@@ -8,6 +8,10 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Search, Shield, Play, Download, Hash, Calendar } from "lucide-react"
 import { AudioPlayer } from "@/components/audio-player"
+import { AgreementActions } from "@/components/agreement-actions"
+
+// Add blockchain integration imports
+import { AgreementContract } from "@/lib/sui-client"
 
 interface VerifyAgreementProps {
   onBack: () => void
@@ -20,37 +24,82 @@ export function VerifyAgreement({ onBack }: VerifyAgreementProps) {
   const [isVerifying, setIsVerifying] = useState(false)
   const [verificationStatus, setVerificationStatus] = useState<"pending" | "verified" | "failed">("pending")
 
+  // Update the handleSearch function
   const handleSearch = async () => {
     setIsSearching(true)
 
-    // Simulate blockchain query
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      // Query blockchain for agreement
+      const result = await AgreementContract.getAgreement(searchQuery)
 
-    // Mock agreement data
-    setFoundAgreement({
-      id: searchQuery,
-      title: "Small Business Loan Agreement",
-      parties: ["0x123...abc", "0x456...def"],
-      amount: "₦50,000",
-      createdAt: "2024-01-15",
-      type: "audio",
-      ipfsHash: "QmX1Y2Z3A4B5C6D7E8F9G0H1I2J3K4L5M6N7O8P9Q0R1S2T3U4V5W6X7Y8Z9",
-      termsHash: "0xa1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456",
-      verifiers: ["0x789...ghi", "0x012...jkl"],
-      status: "verified",
-    })
+      if (result.success) {
+        // Transform blockchain data to UI format
+        const agreement = {
+          id: searchQuery,
+          title: "Agreement", // Could be derived from metadata
+          parties: result.agreement.parties || [],
+          amount: "₦50,000", // Could be stored in metadata
+          createdAt: new Date().toISOString().split("T")[0],
+          type: "audio", // Could be derived from playback_data
+          ipfsHash: Buffer.from(result.agreement.playback_data).toString("utf8"),
+          termsHash: "0x" + Buffer.from(result.agreement.terms_hash).toString("hex"),
+          verifiers: result.agreement.verifiers || [],
+          status: result.agreement.zka_verified ? "verified" : "pending",
+          isSignedByCreator: result.agreement.is_signed_by_creator,
+          isSignedBySecondParty: result.agreement.is_signed_by_second_party,
+          zkaVerified: result.agreement.zka_verified,
+        }
 
-    setIsSearching(false)
+        setFoundAgreement(agreement)
+      } else {
+        throw new Error(result.error)
+      }
+    } catch (error) {
+      console.error("Error searching agreement:", error)
+      setFoundAgreement(null)
+    } finally {
+      setIsSearching(false)
+    }
   }
 
+  // Update the handleVerifyIntegrity function
   const handleVerifyIntegrity = async () => {
     setIsVerifying(true)
 
-    // Simulate IPFS retrieval and hash verification
-    await new Promise((resolve) => setTimeout(resolve, 3000))
+    try {
+      // Retrieve content from IPFS using the hash
+      const ipfsContent = await retrieveFromIPFS(foundAgreement.ipfsHash)
 
-    setVerificationStatus("verified")
-    setIsVerifying(false)
+      // Generate hash of retrieved content
+      const computedHash = await generateContentHash(ipfsContent)
+
+      // Compare with on-chain hash
+      if (computedHash === foundAgreement.termsHash) {
+        setVerificationStatus("verified")
+      } else {
+        setVerificationStatus("failed")
+      }
+    } catch (error) {
+      console.error("Error verifying integrity:", error)
+      setVerificationStatus("failed")
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  // Add helper functions
+  const retrieveFromIPFS = async (hash: string): Promise<string> => {
+    // Simulate IPFS retrieval
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+    return "Mock agreement content retrieved from IPFS"
+  }
+
+  const generateContentHash = async (content: string): Promise<string> => {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(content)
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    return "0x" + hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
   }
 
   return (
@@ -255,6 +304,20 @@ export function VerifyAgreement({ onBack }: VerifyAgreementProps) {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Agreement Actions */}
+            {verificationStatus === "verified" && (
+              <AgreementActions
+                agreement={{
+                  id: foundAgreement.id,
+                  isSignedByCreator: foundAgreement.isSignedByCreator,
+                  isSignedBySecondParty: foundAgreement.isSignedBySecondParty,
+                  zkaVerified: foundAgreement.zkaVerified,
+                  parties: foundAgreement.parties,
+                }}
+                currentUserAddress="0x123...abc" // In production, get from wallet
+              />
             )}
           </div>
         )}
